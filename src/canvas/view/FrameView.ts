@@ -1,5 +1,5 @@
 import { bindAll, isString, debounce, isUndefined } from 'underscore';
-import { appendVNodes, append, createEl, createCustomEvent, motionsEv } from '../../utils/dom';
+import { appendVNodes, createEl, createCustomEvent, motionsEv } from '../../utils/dom';
 import { on, off, setViewEl, hasDnd, getPointerEvent } from '../../utils/mixins';
 import { View } from '../../abstract';
 import CssRulesView from '../../css_composer/view/CssRulesView';
@@ -9,10 +9,28 @@ import Canvas from '../model/Canvas';
 import ComponentWrapper from '../../dom_components/model/ComponentWrapper';
 import FrameWrapView from './FrameWrapView';
 
-export default class FrameView extends View<Frame, HTMLIFrameElement> {
+function isDomEntity(entity: string | HTMLElement) {
+  if (typeof entity === 'string') {
+    return false;
+  } else if (typeof entity === 'object' && entity.nodeName) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+const append = (body: ShadowRoot, child: string | HTMLElement) => {
+  if (isDomEntity(child)) {
+    body.append(child);
+  } else {
+    body.innerHTML += child;
+  }
+};
+
+export default class FrameView extends View<Frame, HTMLDivElement> {
   //@ts-ignore
   get tagName() {
-    return 'iframe';
+    return 'div';
   }
   //@ts-ignore
   get attributes() {
@@ -32,7 +50,7 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
 
   constructor(model: Frame, view?: FrameWrapView) {
     super({ model });
-    bindAll(this, 'updateClientY', 'stopAutoscroll', 'autoscroll', '_emitUpdate');
+    bindAll(this, 'updateClientY', '_emitUpdate');
     const { el, em } = this;
     //el = em.config.el
     //@ts-ignore
@@ -83,8 +101,8 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
     appendVNodes(headEl, toAdd);
   }
 
-  getEl() {
-    return this.el;
+  getEl(): ShadowRoot {
+    return this.el.shadowRoot!;
   }
 
   getCanvasModel(): Canvas {
@@ -92,19 +110,19 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
   }
 
   getWindow() {
-    return this.getEl().contentWindow as Window;
+    return this.getEl();
   }
 
   getDoc() {
-    return this.getEl().contentDocument as Document;
+    return this.getEl();
   }
 
   getHead() {
-    return this.getDoc().querySelector('head') as HTMLHeadElement;
+    return this.getDoc();
   }
 
   getBody() {
-    return this.getDoc().querySelector('body') as HTMLBodyElement;
+    return this.el.shadowRoot!;
   }
 
   getWrapper() {
@@ -152,7 +170,7 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
    */
   getOffsetRect() {
     const { el } = this;
-    const { scrollTop, scrollLeft } = this.getBody();
+    const { scrollTop, scrollLeft } = el;
     const height = el.offsetHeight;
     const width = el.offsetWidth;
 
@@ -181,58 +199,58 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
 
   remove(...args: any) {
     const wrp = this.wrapper;
-    this._toggleEffects(false);
+    // this._toggleEffects(false);
     this.tools = {};
     wrp && wrp.remove();
     View.prototype.remove.apply(this, args);
     return this;
   }
 
-  startAutoscroll() {
-    this.lastMaxHeight = this.getWrapper().offsetHeight - this.el.offsetHeight;
+  // startAutoscroll() {
+  //   this.lastMaxHeight = this.getWrapper().offsetHeight - this.el.offsetHeight;
 
-    // By detaching those from the stack avoid browsers lags
-    // Noticeable with "fast" drag of blocks
-    setTimeout(() => {
-      this._toggleAutoscrollFx(true);
-      requestAnimationFrame(this.autoscroll);
-    }, 0);
-  }
+  //   // By detaching those from the stack avoid browsers lags
+  //   // Noticeable with "fast" drag of blocks
+  //   setTimeout(() => {
+  //     this._toggleAutoscrollFx(true);
+  //     requestAnimationFrame(this.autoscroll);
+  //   }, 0);
+  // }
 
-  autoscroll() {
-    if (this.dragging) {
-      const { lastClientY } = this;
-      const canvas = this.em.get('Canvas');
-      const win = this.getWindow();
-      const actualTop = win.pageYOffset;
-      const clientY = lastClientY || 0;
-      const limitTop = canvas.getConfig().autoscrollLimit;
-      const limitBottom = this.getRect().height - limitTop;
-      let nextTop = actualTop;
+  // autoscroll() {
+  //   if (this.dragging) {
+  //     const { lastClientY } = this;
+  //     const canvas = this.em.get('Canvas');
+  //     const win = this.getWindow();
+  //     const actualTop = win.pageYOffset;
+  //     const clientY = lastClientY || 0;
+  //     const limitTop = canvas.getConfig().autoscrollLimit;
+  //     const limitBottom = this.getRect().height - limitTop;
+  //     let nextTop = actualTop;
 
-      if (clientY < limitTop) {
-        nextTop -= limitTop - clientY;
-      }
+  //     if (clientY < limitTop) {
+  //       nextTop -= limitTop - clientY;
+  //     }
 
-      if (clientY > limitBottom) {
-        nextTop += clientY - limitBottom;
-      }
+  //     if (clientY > limitBottom) {
+  //       nextTop += clientY - limitBottom;
+  //     }
 
-      if (
-        !isUndefined(lastClientY) && // Fixes #3134
-        nextTop !== actualTop &&
-        nextTop > 0 &&
-        nextTop < this.lastMaxHeight
-      ) {
-        const toolsEl = this.getGlobalToolsEl();
-        toolsEl.style.opacity = 0;
-        this.showGlobalTools();
-        win.scrollTo(0, nextTop);
-      }
+  //     if (
+  //       !isUndefined(lastClientY) && // Fixes #3134
+  //       nextTop !== actualTop &&
+  //       nextTop > 0 &&
+  //       nextTop < this.lastMaxHeight
+  //     ) {
+  //       const toolsEl = this.getGlobalToolsEl();
+  //       toolsEl.style.opacity = 0;
+  //       this.showGlobalTools();
+  //       win.scrollTo(0, nextTop);
+  //     }
 
-      requestAnimationFrame(this.autoscroll);
-    }
-  }
+  //     requestAnimationFrame(this.autoscroll);
+  //   }
+  // }
 
   updateClientY(ev: Event) {
     ev.preventDefault();
@@ -243,21 +261,22 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
     this.getGlobalToolsEl().style.opacity = '';
   }
 
-  stopAutoscroll() {
-    this.dragging && this._toggleAutoscrollFx(false);
-  }
+  // stopAutoscroll() {
+  //   this.dragging && this._toggleAutoscrollFx(false);
+  // }
 
-  _toggleAutoscrollFx(enable: boolean) {
-    this.dragging = enable;
-    const win = this.getWindow();
-    const method = enable ? 'on' : 'off';
-    const mt = { on, off };
-    mt[method](win, 'mousemove dragover', this.updateClientY);
-    mt[method](win, 'mouseup', this.stopAutoscroll);
-  }
+  // _toggleAutoscrollFx(enable: boolean) {
+  //   this.dragging = enable;
+  //   const win = this.getWindow();
+  //   const method = enable ? 'on' : 'off';
+  //   const mt = { on, off };
+  //   mt[method](win, 'mousemove dragover', this.updateClientY);
+  //   mt[method](win, 'mouseup', this.stopAutoscroll);
+  // }
 
   render() {
-    const { $el, ppfx } = this;
+    const { $el, ppfx, el } = this;
+    el.attachShadow({ mode: 'open' });
     $el.attr({ class: `${ppfx}frame` });
     this.renderScripts();
     return this;
@@ -276,24 +295,25 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
           ...(isString(src) ? { src } : src),
         });
         scriptEl.onerror = scriptEl.onload = appendScript.bind(null, scripts);
-        el.contentDocument?.head.appendChild(scriptEl);
+        el.appendChild(scriptEl);
       } else {
         this.renderBody();
         em && em.trigger(evLoad, evOpts);
       }
     };
 
-    el.onload = () => {
-      const { frameContent } = this.config;
-      if (frameContent) {
-        const doc = this.getDoc();
-        doc.open();
-        doc.write(frameContent);
-        doc.close();
-      }
-      em && em.trigger(`${evLoad}:before`, evOpts);
-      appendScript([...canvas.get('scripts')]);
-    };
+    //el.onload = () => {
+    // const { frameContent } = this.config;
+    // console.log(frameContent);
+    // if (frameContent) {
+    //   const doc = this.getDoc();
+    //   doc.open();
+    //   doc.write(frameContent);
+    //   doc.close();
+    // }
+    em && em.trigger(`${evLoad}:before`, evOpts);
+    appendScript([...canvas.get('scripts')]);
+    //};
   }
 
   renderStyles(opts: any = {}) {
@@ -437,7 +457,7 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
     // Avoid some default behaviours
     //@ts-ignore
     on(body, 'click', ev => ev && ev.target?.tagName == 'A' && ev.preventDefault());
-    on(body, 'submit', ev => ev && ev.preventDefault());
+    // on(body, 'submit', ev => ev && ev.preventDefault());
 
     // When the iframe is focused the event dispatcher is not the same so
     // I need to delegate all events to the parent document
@@ -452,16 +472,16 @@ export default class FrameView extends View<Frame, HTMLIFrameElement> {
       })
     );
 
-    this._toggleEffects(true);
+    // this._toggleEffects(true);
     this.droppable = hasDnd(em) && new Droppable(em, this.wrapper?.el);
     model.trigger('loaded');
   }
 
-  _toggleEffects(enable: boolean) {
-    const method = enable ? on : off;
-    const win = this.getWindow();
-    win && method(win, `${motionsEv} resize`, this._emitUpdate);
-  }
+  // _toggleEffects(enable: boolean) {
+  //   const method = enable ? on : off;
+  //   const win = this.getWindow();
+  //   win && method(win, `${motionsEv} resize`, this._emitUpdate);
+  // }
 
   _emitUpdate() {
     this.model._emitUpdated();

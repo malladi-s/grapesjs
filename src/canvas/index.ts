@@ -88,8 +88,8 @@ export default class CanvasModule extends Module<CanvasConfig> {
 
     this.canvas = new Canvas(this);
     this.model = this.canvas;
-    this.startAutoscroll = this.startAutoscroll.bind(this);
-    this.stopAutoscroll = this.stopAutoscroll.bind(this);
+    // this.startAutoscroll = this.startAutoscroll.bind(this);
+    // this.stopAutoscroll = this.stopAutoscroll.bind(this);
     return this;
   }
   init() {}
@@ -133,7 +133,7 @@ export default class CanvasModule extends Module<CanvasConfig> {
    */
   getWindow() {
     const { frame } = this.canvasView || {};
-    return frame?.getWindow() as Window;
+    return frame;
   }
 
   /**
@@ -552,19 +552,19 @@ export default class CanvasModule extends Module<CanvasConfig> {
    * Start autoscroll
    * @private
    */
-  startAutoscroll(frame: Frame) {
-    const fr = (frame && frame.view) || this.em.getCurrentFrame();
-    fr && fr.startAutoscroll();
-  }
+  // startAutoscroll(frame: Frame) {
+  //   const fr = (frame && frame.view) || this.em.getCurrentFrame();
+  //   fr && fr.startAutoscroll();
+  // }
 
   /**
    * Stop autoscroll
    * @private
    */
-  stopAutoscroll(frame: Frame) {
-    const fr = (frame && frame.view) || this.em.getCurrentFrame();
-    fr && fr.stopAutoscroll();
-  }
+  // stopAutoscroll(frame: Frame) {
+  //   const fr = (frame && frame.view) || this.em.getCurrentFrame();
+  //   fr && fr.stopAutoscroll();
+  // }
 
   /**
    * Set canvas zoom value

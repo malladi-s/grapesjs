@@ -144,7 +144,7 @@ export default class FrameWrapView extends View<Frame> {
 
   frameLoaded() {
     const { frame } = this;
-    frame.getWindow().onscroll = this.onScroll;
+    // frame.getWindow().onscroll = this.onScroll;
     this.updateDim();
   }
 

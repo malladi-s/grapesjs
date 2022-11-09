@@ -279,6 +279,7 @@ $guide_pad: 5px !default;
 }
 
 .#{$app-prefix}frame {
+  background-color: #fff;
   outline: medium none;
   height: 100%;
   width: 100%;

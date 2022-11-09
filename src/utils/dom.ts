@@ -108,7 +108,7 @@ export const createCustomEvent = (e: any, cls: any) => {
  * @param {HTMLElement} node HTML element
  * @param {Array} vNodes Array of node objects
  */
-export const appendVNodes = (node: HTMLElement, vNodes: vNode | vNode[] = []) => {
+export const appendVNodes = (node: HTMLElement | ShadowRoot, vNodes: vNode | vNode[] = []) => {
   const vNodesArr = Array.isArray(vNodes) ? vNodes : [vNodes];
   vNodesArr.forEach(vnode => {
     const tag = vnode[KEY_TAG] || 'div';

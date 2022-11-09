@@ -222,8 +222,7 @@ export default class CanvasView extends View<Canvas> {
   getFrameOffset(el?: HTMLElement) {
     if (!this.frmOff || el) {
       const frame = this.frame?.el;
-      const winEl = el?.ownerDocument.defaultView;
-      const frEl = winEl ? (winEl.frameElement as HTMLElement) : frame;
+      const frEl = frame;
       this.frmOff = this.offset(frEl || frame);
     }
     return this.frmOff;
@@ -296,9 +295,9 @@ export default class CanvasView extends View<Canvas> {
    * @public
    */
   getPosition(opts: any = {}) {
-    const doc = this.frame?.el.contentDocument;
+    const doc = this.frame?.el;
     if (!doc) return;
-    const bEl = doc.body;
+    const bEl = doc;
     const zoom = this.getZoom();
     const fo = this.getFrameOffset();
     const co = this.getCanvasOffset();

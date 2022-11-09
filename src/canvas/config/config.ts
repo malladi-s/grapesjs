@@ -72,7 +72,6 @@ const config: CanvasConfig = {
   extHl: false,
   frameContent: '<!DOCTYPE html>',
   frameStyle: `
-    body { background-color: #fff }
     * ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1) }
     * ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2) }
     * ::-webkit-scrollbar { width: 10px }
